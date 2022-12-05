@@ -1,0 +1,31 @@
+services:
+  sql:
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
+    container_name: sql_server_docker
+    ports:
+      - "1433:1433" 
+    environment:
+      - ACCEPT_EULA=y
+      - SA_PASSWORD=test&Comp123Pass
+  api:
+    build:
+      context: .
+      dockerfile: MusicStreamServiceApp.API/Dockerfile
+    image: music-service-api
+    container_name: api
+    ports:
+      - "5002:82"
+    environment:
+      - ASPNETCORE_URLS=http://+:82
+      - SQL_SERVER_CONNECTION_STRING=Server=localhost;Database=MusicDB;User Id=SA;Password=test&Comp123Pass;MultipleActiveResultSets=true;Trusted_Connection=false
+  ui:
+    build:
+      context: .
+      dockerfile: BlazorUI/Dockerfile
+    image: music-service-ui
+    container_name: ui
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+      - API_URL=http://api:82/api/
