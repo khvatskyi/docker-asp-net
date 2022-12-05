@@ -17,7 +17,11 @@ services:
       - "5002:82"
     environment:
       - ASPNETCORE_URLS=http://+:82
-      - SQL_SERVER_CONNECTION_STRING=Server=localhost;Database=MusicDB;User Id=SA;Password=test&Comp123Pass;MultipleActiveResultSets=true;Trusted_Connection=false
+      - SQL_SERVER_CONNECTION_STRING=Server=sql_server_docker;Database=MusicDB;User Id=SA;Password=test&Comp123Pass;MultipleActiveResultSets=true;Trusted_Connection=false
+      - JwtIssuer=MyMusicPlayerServer
+      - JwtAudience=MyMusicPlayerClient
+      - JwtKey=mysupersecret_secretkey!123
+      - JwtExpireDays=7
   ui:
     build:
       context: .

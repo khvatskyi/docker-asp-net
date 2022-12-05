@@ -12,13 +12,6 @@ namespace MusicStreamServiceApp.API.Service
 {
     public class JwtTokenService : IJwtTokenService
     {
-        private readonly IConfiguration configuration;
-
-        public JwtTokenService(IConfiguration configuration)
-        {
-            this.configuration = configuration;
-        }
-
         public string GenerateJwtToken(UserDTO user)
         {
             var claims = new List<Claim>
@@ -29,18 +22,18 @@ namespace MusicStreamServiceApp.API.Service
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWTConfiguration:JwtKey"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JwtKey")));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddDays(Convert.ToDouble(configuration["JWTConfiguration:JwtExpireDays"]));
+            var expires = DateTime.Now.AddDays(Convert.ToDouble(Environment.GetEnvironmentVariable("JwtExpireDays")));
 
             var token = new JwtSecurityToken(
-                issuer: configuration["JWTConfiguration:JwtIssuer"],
-                audience: configuration["JWTConfiguration:JwtAudience"],
+                issuer: Environment.GetEnvironmentVariable("JwtIssuer"),
+                audience: Environment.GetEnvironmentVariable("JwtAudience"),
                 claims: claims,
                 expires: expires,
                 signingCredentials: creds
             );
-            
+
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }

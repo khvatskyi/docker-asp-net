@@ -42,32 +42,37 @@ namespace MusicStreamServiceApp.API
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<MusicDBContext>(opts => opts.UseSqlServer(Configuration.GetConnectionString("Docker")));
+            services.AddDbContext<MusicDBContext>(opts => opts.UseSqlServer(Environment.GetEnvironmentVariable("SQL_SERVER_CONNECTION_STRING")));
 
             services.AddControllers().AddFluentValidation();
 
             #region Repositories
+
             services.AddTransient<IMusicRepository, MusicRepository>();
             services.AddTransient<IAlbumRepository, AlbumRepository>();
             services.AddTransient<IMusicGenreRepository, MusicGenreRepository>();
             services.AddTransient<IGenreRepository, GenreRepository>();
             services.AddTransient<IMusicPlaylistRepository, MusicPlaylistRepository>();
             services.AddTransient<IUserPlaylistRepository, UserPlaylistRepository>();
-            #endregion
+
+            #endregion Repositories
 
             services.AddTransient<IUnitOfWork, UnitOfWork>();
 
             #region Services
+
             services.AddTransient<IAccountService, AccountService>(); // Identity
             services.AddTransient<IAlbumService, AlbumService>();
             services.AddTransient<IMusicService, MusicService>();
             services.AddTransient<IGenreService, GenreService>();
             services.AddTransient<IPlaylistService, PlaylistService>();
-            #endregion
+
+            #endregion Services
 
             services.AddAutoMapper(typeof(MapperProfile));
 
             #region DTO Validators
+
             services.AddTransient<IValidator<MusicCUDTO>, MusicCUDTOValidator>();
             services.AddTransient<IValidator<GenreDTO>, GenreDTOValidator>();
             services.AddTransient<IValidator<AlbumDTO>, AlbumDTOValidator>();
@@ -79,9 +84,11 @@ namespace MusicStreamServiceApp.API
             services.AddTransient<IValidator<UserDTO>, UserDTOValidator>();
             services.AddTransient<IValidator<UserLoginDTO>, UserLoginDTOValidator>();
             services.AddTransient<IValidator<UserUpdateDTO>, UserUpdateDTOValidator>();
-            #endregion
+
+            #endregion DTO Validators
 
             #region Swagger
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
@@ -118,9 +125,11 @@ namespace MusicStreamServiceApp.API
 
                 c.OperationFilter<AuthOperationFilter>();
             });
-            #endregion
+
+            #endregion Swagger
 
             #region Identity
+
             services.AddIdentity<User, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<MusicDBContext>();
 
@@ -157,9 +166,11 @@ namespace MusicStreamServiceApp.API
                 options.AccessDeniedPath = "/Identity/Account/AccessDenied";
                 options.SlidingExpiration = true;
             });
-            #endregion
+
+            #endregion Identity
 
             #region JWT Authentication
+
             services
                 .AddAuthentication(options =>
                 {
@@ -174,13 +185,13 @@ namespace MusicStreamServiceApp.API
                     cfg.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
-                        ValidIssuer = Configuration.GetSection("JWTConfiguration")["JwtIssuer"],
+                        ValidIssuer = Environment.GetEnvironmentVariable("JwtIssuer"),
 
                         ValidateAudience = true,
-                        ValidAudience = Configuration.GetSection("JWTConfiguration")["JwtAudience"],
+                        ValidAudience = Environment.GetEnvironmentVariable("JwtAudience"),
 
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetSection("JWTConfiguration")["JwtKey"])),
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JwtKey"))),
 
                         ValidateLifetime = false,
 
@@ -189,14 +200,17 @@ namespace MusicStreamServiceApp.API
                 });
 
             services.AddTransient<IJwtTokenService, JwtTokenService>();
-      #endregion
 
-            services.AddCors(opts => {
-              opts.AddDefaultPolicy(policy => {
-                policy.AllowAnyOrigin();
-                policy.AllowAnyHeader();
-                policy.AllowAnyMethod();
-              });
+            #endregion JWT Authentication
+
+            services.AddCors(opts =>
+            {
+                opts.AddDefaultPolicy(policy =>
+                {
+                    policy.AllowAnyOrigin();
+                    policy.AllowAnyHeader();
+                    policy.AllowAnyMethod();
+                });
             });
         }
 
@@ -218,7 +232,7 @@ namespace MusicStreamServiceApp.API
             app.UseRouting();
 
             app.UseCors();
-            
+
             app.UseAuthentication();
             app.UseAuthorization();
 
